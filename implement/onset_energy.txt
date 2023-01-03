@@ -1,0 +1,5 @@
+clarnet: 0.4354
+piano: 0.8868
+sax: 0.5762
+trumpet: 0.7476
+violin: 0.4975
