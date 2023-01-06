@@ -1,4 +1,4 @@
-% instrument_name = ["piano", "trumpet", "violin", "Ebclarnet", "sopsax"];
+
 % files = string(zeros(2,0));
 % % get all files
 % for i = 1:length(instrument_name)
@@ -21,52 +21,76 @@
 % sopsax: E0/EA round 0.09
 % violin: others
 % random tree??
+%%
 correct_num = 0;
 load("features_5instruments.mat");
+label=features_5instruments(:,2);
+label =cell2mat(label);
+features = features_5instruments(:,1);
+features = cell2mat(features);
+[m, ~] = find(isnan(features));
+m = unique(m);
+features(m,:) = [];
+label(m) = [];
+
+sample_num = length(label);
+shuffle = randperm(sample_num);
+label = label(shuffle);
+features = features(shuffle,:);
+K = 10;
+test_num = round(sample_num/K);
+label = label(end-test_num+1:end);
+features = features(end-test_num:end,:);
+
+%%
+instrument_name = ["piano", "trumpet", "violin", "Ebclarnet", "sopsax"];
+%                       1,      2,          3,      4,              5
 category_num = zeros(1,5);
 classify_num = zeros(5,5);
-for i = 1:size(files,2)
-    correct_ans = features_5instruments{i,2};
-    output = features_5instruments{i,1};
-    % [1:c1, 2:c2, 3:epsilon, 4:E_b, 5:E_1, 6:E_2, 7:E_A, 8:onset_E]
-    c2 = output(2); epsilon = output(3); onset_E = output(8);
-    E_0 = output(4); E_A = output(7);
+for i = 1:size(label,1)
+    correct_ans = label(i);
+    output = features(i,:);
+    % output: [c1, c2, residual(epsilon), E0/EA, E1/EA, E2/EA, E1/E0, E2/E0, E2/E1, onset_energy]
+    %           1, 2,   3,                  4,   5,     6,      7,      8,      9,       10,
+    c2 = output(2); epsilon = output(3); onset_E = output(10);
+    E0EA = output(9);
     classify_ans = "";
     if onset_E >= 0.2
-        classify_ans = "piano";
+        classify_ans = 1;
     else
         if epsilon > 1.2
             if onset_E > 0.09
-                classify_ans = "trumpet";
+                classify_ans = 2;
             else
-                classify_ans = "violin";
+                classify_ans = 3;
             end
         else
             if abs(c2)>1E3
-                classify_ans = "violin";
+                classify_ans = 3;
             else
-                if abs(E_0/E_A - 0.8)/0.8 < 0.5
-                    classify_ans = "Ebclarnet";
+                if abs(E0EA - 0.8)/0.8 < 0.5
+                    classify_ans = 4;
                 else
-                    classify_ans = "sopsax";
+                    classify_ans = 5;
                 end
             end
         end
     end
-    cor_index = getIndex(correct_ans);
-    cla_index = getIndex(classify_ans);
-    category_num(cor_index) = category_num(cor_index) + 1;
-    classify_num(cor_index, cla_index) = classify_num(cor_index,cla_index)+1;
+%     cor_index = getIndex(correct_ans);
+%     cla_index = getIndex(classify_ans);
+    category_num(correct_ans) = category_num(correct_ans) + 1;
+    classify_num(correct_ans, classify_ans) = classify_num(correct_ans, classify_ans)+1;
     if classify_ans == correct_ans
         correct_num = correct_num+1;
     end
 end
 
-disp(correct_num/size(files,2));
+% disp(correct_num/size(label,1));
 classify_num
 for i = 1:5
     disp([instrument_name(i),classify_num(i,i)/category_num(i)]);
 end
+disp(["correct rate",correct_num/size(label,1)]);
 function index = getIndex(name)
     % order: "piano", "trumpet", "violin", "Ebclarnet", "sopsax"
     instrument_name = ["piano", "trumpet", "violin", "Ebclarnet", "sopsax"];

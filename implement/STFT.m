@@ -57,7 +57,7 @@ function [X, t, f] = STFT(x, fs, f_max)
     sgm = 200; B = 1.9143/(sqrt(sgm)); Q = fix(B/dt); N = fix(1/(dt*df));
     f = [0:df:f_max];    t = [0:dtau:(size(x,2)-1)/fs];
     c0 = fix(min(t)/ dt); m0 = fix(min(f)/ df);
-    F = ((max(f)- min(f))/ df)+1; C = ((max(t)- min(t))/ dtau)+1;
+    F = fix((max(f)- min(f))/ df)+1; C = fix((max(t)- min(t))/ dtau)+1;
     window = exp(-sgm* pi* dt^2 .* [-Q:Q].^2); % 2Q+1 pnts
     X = zeros([F,C]);
     x = [zeros(1,Q),x,zeros(1,Q)];

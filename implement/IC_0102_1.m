@@ -1,5 +1,6 @@
 % instrument_name = ["piano", "trumpet", "violin", "Ebclarnet", "sopsax"];
-addpath('D:\lab\libsvm-3.3\libsvm-3.3\matlab');
+% addpath('D:\lab\libsvm-3.3\libsvm-3.3\matlab');
+addpath('D:\NTUEE\master_1\lab\musical_instrument_classification\musical_instrument_classification_git\musical_instrument_classification\libsvm_matlab');
 load features_5instruments.mat;
 label=features_5instruments(:,2);
 label =cell2mat(label);
@@ -11,7 +12,9 @@ features = cell2mat(features);
 m = unique(m);
 features(m,:) = [];
 label(m) = [];
-
+% four categories
+label(label == 5) = 4;
+category_num = unique(label);
 %% shuffle
 sample_num = length(label);
 shuffle = randperm(sample_num);
@@ -67,10 +70,20 @@ for i = 1:K
 end
 
 %% accuracy per categories
-acc_mat = zeros(5);
-for i = 1:length(predicted)
-    acc_mat(predicted(i), label_test(i)) = acc_mat(predicted(i),label_test(i))+1; 
-end
+acc_mat = zeros(length(category_num));
 
+correction = zeros(1,10);
+for i = 1:length(correction)
+    shuffle = randperm(sample_num);
+    label = label(shuffle); features= features(shuffle,:);
+    label_test = label(end-test_num+1:end); features_test = features(end-test_num+1:end,:);
+    features_test_scaling = (features_test - m_mean)*nrm;
+    [predicted, accuracy, d_values] = svmpredict(label_test, features_test_scaling, model);
+    correction(i) = accuracy(1);
+    for j = 1:length(predicted)
+        acc_mat(predicted(j), label_test(j)) = acc_mat(predicted(j),label_test(j))+1; 
+    end
+end
 disp(acc_mat);
 disp(mean(accuracy_iter));
+disp(mean(correction));

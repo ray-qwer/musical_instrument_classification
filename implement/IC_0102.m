@@ -40,39 +40,3 @@ for i = 1:size(files,2)
 end
 
 save features_5instruments.mat features_5instruments;
-% plot(t, x);
-% hold on;
-% threshold_silence = 0;
-% threshold_noisy = 0.001;
-% state_count_thr = 50;
-% state = false; % state: false is silence, true is playing
-% state_count =0;
-% state_1to0 = [];
-% for i= 1:length(x)
-%     if state == 0
-%         if abs(x(i)) > threshold_noisy
-%             state_count = state_count +1;
-%         else 
-%             state_count = 0;
-%         end
-%     else
-%         if(abs(x(i))) <= threshold_silence
-%             state_count = state_count +1;
-%         else
-%             state_count = 0;
-%         end
-%     end
-%     if state_count > state_count_thr
-%         if state
-%             state_1to0 =[state_1to0, i-state_count-30];
-%         end
-%         state = ~state;
-%         state_count = 0;
-%     end
-% end
-% state_1to0(end) = length(x);
-% yl = ylim;
-% for i = 1:length(state_1to0)
-%     plot([state_1to0(i), state_1to0(i)],yl,"r");
-% end
-% hold off;
