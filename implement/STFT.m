@@ -53,7 +53,7 @@ function [X, t, f] = STFT(x, fs, f_max)
     if size(x,1) >1
         x = x(1,:);
     end
-    df = 1; dt = 1/fs; dtau = 0.005; S = dtau/dt;
+    df = 1; dt = 1/fs; dtau = 0.005; S = fix(dtau/dt);
     sgm = 200; B = 1.9143/(sqrt(sgm)); Q = fix(B/dt); N = fix(1/(dt*df));
     f = [0:df:f_max];    t = [0:dtau:(size(x,2)-1)/fs];
     c0 = fix(min(t)/ dt); m0 = fix(min(f)/ df);

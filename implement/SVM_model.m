@@ -1,11 +1,14 @@
 % instrument_name = ["piano", "trumpet", "violin", "Ebclarnet", "sopsax"];
-% addpath('D:\lab\libsvm-3.3\libsvm-3.3\matlab');
-addpath('D:\NTUEE\master_1\lab\musical_instrument_classification\musical_instrument_classification_git\musical_instrument_classification\libsvm_matlab');
-load features_5instruments.mat;
-label=features_5instruments(:,2);
+addpath('D:\lab\libsvm-3.3\libsvm-3.3\matlab');
+% addpath('D:\NTUEE\master_1\lab\musical_instrument_classification\musical_instrument_classification_git\musical_instrument_classification\libsvm_matlab');
+load features_5instruments_0110.mat;
+% output = [c_mean(2:3), ave_residual,E_feature, ave_energy_ratio(10:10:100), E_stable(1:3)];
+features_dataset = features_5instruments_0110;
+label=features_dataset(:,2);
 label =cell2mat(label);
-features = features_5instruments(:,1);
+features = features_dataset(:,1);
 features = cell2mat(features);
+features = features(:,1:end);
 
 %% check NaN
 [m, ~] = find(isnan(features));
@@ -13,7 +16,7 @@ m = unique(m);
 features(m,:) = [];
 label(m) = [];
 % four categories
-label(label == 5) = 4;
+% label(label == 5) = 4;
 category_num = unique(label);
 %% shuffle
 sample_num = length(label);
@@ -85,5 +88,8 @@ for i = 1:length(correction)
     end
 end
 disp(acc_mat);
-disp(mean(accuracy_iter));
 disp(mean(correction));
+for i = 1:size(acc_mat,1)
+    total_tmp = sum(acc_mat(i,:));
+    disp([num2str(i),' correction: ',num2str(acc_mat(i,i)/total_tmp)]);
+end
