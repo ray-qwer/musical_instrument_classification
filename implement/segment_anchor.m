@@ -1,8 +1,14 @@
-function anchor = segment_anchor(x)
+function anchor = segment_anchor(x,fs)
     % threshold setting
-    thr_silence = 0;
-    thr_noisy = 0.03;
-    state_count_thr = 10;
+    x = x.^2;
+    filter = exp(-0.001.*([-2200:2200]./fs).^2);
+    x = conv(x,filter,"same");
+    x = x * 0.8/max(x(x<max(x)/2));
+    thr_silence = 0.8/100;
+%     thr_silence = 0;
+    thr_noisy = mean(abs(x));
+%     thr_noisy = max(abs(x))/10;
+    state_count_thr = 0.5*fs;
     
     % variables
     state = false;
@@ -22,7 +28,7 @@ function anchor = segment_anchor(x)
             end
         end
         if state_count >= state_count_thr
-            if state
+            if state && (isempty(anchor) || i-anchor(end) > fs)  
                 anchor(end+1) = i-state_count_thr-30;
             end
             state = ~state;

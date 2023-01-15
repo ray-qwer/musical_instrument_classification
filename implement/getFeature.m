@@ -8,18 +8,15 @@ if length(x) > fs*20
         x = x(1,1:fs*20);
     end
 end
-disp("STFT");
-tic;
+
 X = STFT(x, fs, 4000);
-toc;
-disp("INST_FREQ_Label");
-tic;
+
+
 X_inst = INST_FREQ(X);
-toc;
+
 
 %% instataneous freq
-disp("approximation");
-tic;
+
 order = 2 + 1;      % prior is the one to modified, 2 for second order
 c_mean = zeros(order, 1); 
 dtau = 0.005;
@@ -36,7 +33,7 @@ for label1 = 1:num
     dot_counts = dot_counts + length(b);
     ave_residual = ave_residual +residual_abs;
 end
-toc;
+
 ave_residual = ave_residual/ dot_counts;
 c_mean = c_mean ./ dot_counts;
 c_mean = c_mean.';
@@ -46,6 +43,7 @@ dot_counts = 0;
 freq_factor = [1:3];
 E_har = zeros(1,freq_factor(end));
 E_all = 0;
+f_0_max = 0;
 for t = [1:size(X_inst,2)]
     if max(X_inst(:,t)) == 0
         continue;
@@ -58,6 +56,7 @@ for t = [1:size(X_inst,2)]
             f0 = f_gap;
         end
     end
+    f_0_max = max(f_0_max, f0);
     upper = round((freq_factor+0.5).*f0); lower = round((freq_factor-0.5).*f0);
     upper(upper > size(X_inst,1)) = size(X_inst,1);
     lower(lower > size(X_inst,1)) = size(X_inst,1);
@@ -109,7 +108,7 @@ ave_energy_ratio = ave_energy_ratio./ dot_counts;
 
 %% stability of f0
 E_stable = zeros(1,3);
-E_all = 0;
+
 dot_counts = 0;
 t= 1;
 while t <= size(X_inst,2)
@@ -127,19 +126,22 @@ while t <= size(X_inst,2)
                 f0 = abs(f1-f0);
             end
         end
+        E_stable_tmp = zeros(1,3);
+        E_all = 0;
         for t_ = min(t_label1):max(t_label1)
-            for j = 1:length(E_stable)
-                E_stable(j) =E_stable(j)+ sum(X(min(fix((j-0.05)*f0),size(X_inst,1)):min(fix((j+0.05)*f0),size(X_inst,1)),t_).^2);
+            for j = 1:length(E_stable_tmp)
+                E_stable_tmp(j) =E_stable_tmp(j)+ sum(X(min(fix((j-0.05)*f0),size(X_inst,1)):min(fix((j+0.05)*f0),size(X_inst,1)),t_).^2);
             end
             E_all =E_all+ sum(X(:,t_).^2);
         end
         dot_counts = dot_counts + max(t_label1)- min(t_label1)+ 1;
+        E_stable = E_stable + (E_stable_tmp ./ E_all) .* (max(t_label1)-min(t_label1)+1);
         t = t_;
     end
     t=t+1;
 end
-E_stable = E_stable ./ E_all;
+E_stable = E_stable ./ dot_counts;
 
 %%
-output = [c_mean(2:3), ave_residual,E_feature, ave_energy_ratio, E_stable];
+output = [f_0_max, c_mean(2:3), ave_residual,E_feature, ave_energy_ratio, E_stable];
 end
