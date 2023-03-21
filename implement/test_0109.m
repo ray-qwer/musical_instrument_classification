@@ -1,10 +1,12 @@
-[x, fs] = audioread("D:\lab\musical_instrument_classification\music_samples\string\cello\arco\Cello.arco.mf.sulC.C3C4.mono.aif");
+[x, fs] = audioread("D:\lab\musical_instrument_classification\music_samples\piano&other\piano\Piano.ff.A0.aiff");
 x= x(:,1).';
 
 x_ = x.^2;
 filter = exp(-0.001.*([-2200:2200]./fs).^2);
 x_ = conv(x_,filter,"same");
-x_ = x_ * 0.8/mean(x_);
+m = max(mean(x_)*4,max(x_)/30);
+x_(x_> m) = m;
+x_ = x_ * 0.8/max(x_);
 figure(1);
 
 plot(1:length(x),x_);
@@ -17,26 +19,26 @@ end
 hold off;
 % anchor = segment_anchor(x,fs);
 start_index = 1;
-numel(anchor)
+
 %% 
-for j = 4:length(anchor)
+for j = 1:length(anchor)
     x_seg = x(start_index:anchor(j));
     start_index = anchor(j);
     outputs = getFeature(x_seg, fs);
 end
-% outputs = getFeature(x,fs);
-% tic;
-% [GT,t,f] = STFT(x, fs, 4000);
-% toc;
-% % t = [0:length(x)-1]./fs; f= 0:4000;
-% figure(1);
-% image(t,f,abs(GT)/max(max(abs(GT)))*400);colormap(gray(256));set(gca,'Ydir','normal');set(gca,'Fontsize',12);
-% xlabel('Time (Sec)','Fontsize',12);ylabel('Frequency (Hz)','Fontsize',12);title('STFT of x(t)','Fontsize',12);
-% 
-% tic;
-% X_inst = INST_FREQ(GT);
-% toc;
-% 
-% figure(2);
-% image(t,f,abs(X_inst)/max(max(abs(X_inst)))*400);colormap(gray(256));set(gca,'Ydir','normal');set(gca,'Fontsize',12);
-% xlabel('Time (Sec)','Fontsize',12);ylabel('Frequency (Hz)','Fontsize',12);title('STFT of x(t)','Fontsize',12);
+outputs = getFeature(x,fs);
+tic;
+[GT,t,f] = STFT(x, fs, 4000);
+toc;
+% t = [0:length(x)-1]./fs; f= 0:4000;
+figure(1);
+image(t,f,abs(GT)/max(max(abs(GT)))*400);colormap(gray(256));set(gca,'Ydir','normal');set(gca,'Fontsize',12);
+xlabel('Time (Sec)','Fontsize',12);ylabel('Frequency (Hz)','Fontsize',12);title('STFT of x(t)','Fontsize',12);
+
+tic;
+X_inst = INST_FREQ(GT);
+toc;
+
+figure(2);
+image(t,f,abs(X_inst)/max(max(abs(X_inst)))*400);colormap(gray(256));set(gca,'Ydir','normal');set(gca,'Fontsize',12);
+xlabel('Time (Sec)','Fontsize',12);ylabel('Frequency (Hz)','Fontsize',12);title('STFT of x(t)','Fontsize',12);

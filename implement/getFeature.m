@@ -43,7 +43,7 @@ dot_counts = 0;
 freq_factor = [1:3];
 E_har = zeros(1,freq_factor(end));
 E_all = 0;
-f_0_max = 0;
+f_0_max = 8000;
 for t = [1:size(X_inst,2)]
     if max(X_inst(:,t)) == 0
         continue;
@@ -52,11 +52,11 @@ for t = [1:size(X_inst,2)]
     f_array = find(X_inst(:,t) == mag,2);
     if length(f_array) > 1
         f_gap = f_array(2) - f_array(1);
-        if abs(f_array(1) - f_gap) / f_array(1) > 0.1
+        if abs(f_array(1) - f_gap) / f_array(1) > 0.1 && f_array(1) > f_gap && f_gap/f_array(1) > 0.1
             f0 = f_gap;
         end
     end
-    f_0_max = max(f_0_max, f0);
+    f_0_max = min(f_0_max, f0);
     upper = round((freq_factor+0.5).*f0); lower = round((freq_factor-0.5).*f0);
     upper(upper > size(X_inst,1)) = size(X_inst,1);
     lower(lower > size(X_inst,1)) = size(X_inst,1);
@@ -74,8 +74,9 @@ E_har = E_har./ dot_counts;
 % E0/EA, E1/EA, E2/EA, E1/E0, E2/E0, E2/E1
 E_feature = [E_har./E_all, E_har(2)/E_har(1), E_har(3)/E_har(1), E_har(3)/E_har(2)];
 
-%% onset energy
+%% energy percentage along time
 dot_counts = 0;
+% ave_energy_ratio = zeros(1,6);
 ave_energy_ratio = zeros(1,10);
 K = bwlabel(X_inst,8);
 t = 1;
@@ -85,14 +86,20 @@ while t <= size(X_inst,2)
         label1 = K(f,t);
         [~, t_label] = find(K == label1);
         t_0 = min(t_label); t_1 = max(t_label); gap = t_1 - t_0;
-        onset_10 = zeros(1,10); E1 = 0; pct_idx = 1;
+%         onset_6 = zeros(1,6);
+        onset_10 = zeros(1,10);
+        E1 = 0; pct_idx = 1;
+%         exp_thr = 0.02;
+        exp_thr = 0.1;
         for t_ = [t_0: t_1]
             E_tmp = sum(X(:,t_).^2);
-            if t_ <= t_0 + gap * 0.1* pct_idx
+            if t_ <= t_0 + gap * exp_thr
                 onset_10(pct_idx)  = onset_10(pct_idx) + E_tmp;
             else 
-                if pct_idx < 10
+                if exp_thr < 1
                     pct_idx = pct_idx + 1;
+%                     exp_thr = exp_thr+2^pct_idx*0.01;
+                    exp_thr = pct_idx*0.1;
                     onset_10(pct_idx) = E_tmp;
                 end
             end

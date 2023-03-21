@@ -28,7 +28,7 @@ function anchor = segment_anchor(x,fs)
             end
         end
         if state_count >= state_count_thr
-            if state && (isempty(anchor) || i-anchor(end) > fs)  
+            if state && (isempty(anchor) || i-anchor(end) > fs)
                 anchor(end+1) = i-state_count_thr-30;
             end
             state = ~state;
